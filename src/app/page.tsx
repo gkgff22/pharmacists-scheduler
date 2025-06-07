@@ -11,12 +11,7 @@ import {
 
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [pharmacists, setPharmacists] = useState([
-    "王藥師",
-    "李藥師",
-    "張藥師",
-    "陳藥師",
-  ]);
+  const [pharmacists, setPharmacists] = useState(["邱", "黃", "李", "陳"]);
   const [schedule, setSchedule] = useState<Schedule>({});
   const [violations, setViolations] = useState<string[]>([]);
   const [notes, setNotes] = useState<Notes>({});
@@ -297,9 +292,7 @@ export default function Home() {
     ctx.font = "bold 28px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(
-      `${currentMonth.getFullYear()}年 ${
-        currentMonth.getMonth() + 1
-      }月 藥師排班表`,
+      `${currentMonth.getFullYear()}年 ${currentMonth.getMonth() + 1}月 排班表`,
       totalWidth / 2,
       padding + titleHeight / 2 + 10
     );
