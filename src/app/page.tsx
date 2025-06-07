@@ -427,7 +427,10 @@ export default function Home() {
 
             if (periodPharmacists.length > 0) {
               // 計算每個藥師色塊的寬度
-              const blockWidth = contentWidth / periodPharmacists.length;
+              const blockWidth =
+                periodPharmacists.length === 1
+                  ? contentWidth / 2 // 如果只有一個藥師，只填滿左半邊
+                  : contentWidth / periodPharmacists.length;
 
               periodPharmacists.forEach((pharmacist, index) => {
                 const blockX = contentX + index * blockWidth;
@@ -452,23 +455,6 @@ export default function Home() {
                   blockY + contentHeight / 2 + 4
                 );
               });
-            } else {
-              // 如果該時段沒有人，填滿整個區域並顯示 "-"
-              ctx.fillStyle = "#f8fafc";
-              ctx.fillRect(contentX, rowY + 1, contentWidth, contentHeight);
-
-              ctx.strokeStyle = "#e2e8f0";
-              ctx.lineWidth = 1;
-              ctx.strokeRect(contentX, rowY + 1, contentWidth, contentHeight);
-
-              ctx.fillStyle = "#9ca3af";
-              ctx.font = "12px Arial, sans-serif";
-              ctx.textAlign = "center";
-              ctx.fillText(
-                "-",
-                contentX + contentWidth / 2,
-                rowY + rowHeight / 2 + 4
-              );
             }
           });
 
