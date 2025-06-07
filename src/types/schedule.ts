@@ -1,4 +1,4 @@
-export type Shift = '早' | '午' | '晚';
+export type Shift = '早' | '午' | '晚' | '加';
 
 export interface RequiredShifts {
   morning: number;

@@ -20,7 +20,7 @@ export const ShiftEditor = ({ shifts, onSave, onCancel }: ShiftEditorProps) => {
   return (
     <div className="flex flex-col gap-2 p-2 bg-gray-50 rounded">
       <div className="flex gap-1">
-        {(["早", "午", "晚"] as Shift[]).map((shift) => (
+        {(["早", "午", "晚", "加"] as Shift[]).map((shift) => (
           <button
             key={shift}
             onClick={() => toggleShift(shift)}

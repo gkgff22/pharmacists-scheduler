@@ -384,10 +384,10 @@ export default function Home() {
 
           // 定義藥師顏色（使用不同的色調）
           const pharmacistColors = [
-            { bg: "#fef3c7", text: "#92400e" }, // 黃色系
-            { bg: "#dbeafe", text: "#1e40af" }, // 藍色系
-            { bg: "#f3e8ff", text: "#6b21a8" }, // 紫色系
             { bg: "#dcfce7", text: "#166534" }, // 綠色系
+            { bg: "#fef3c7", text: "#92400e" }, // 黃色系
+            { bg: "#f3e8ff", text: "#6b21a8" }, // 紫色系
+            { bg: "#dbeafe", text: "#1e40af" }, // 藍色系
           ];
 
           // 計算三行的高度和位置（移除時段標籤）
@@ -413,7 +413,8 @@ export default function Home() {
               const actualPeriod = periodMapping[period];
               if (shifts.includes(actualPeriod)) {
                 periodPharmacists.push({
-                  name: pharmacist.charAt(0), // 只取姓氏
+                  name:
+                    pharmacist.charAt(0) + (shifts.includes("加") ? "加" : ""), // 如果是加班，加上 "+" 符號
                   color:
                     pharmacistColors[pharmacistIndex % pharmacistColors.length],
                 });
@@ -447,7 +448,7 @@ export default function Home() {
 
                 // 繪製藥師姓氏
                 ctx.fillStyle = pharmacist.color.text;
-                ctx.font = "bold 12px Arial, sans-serif";
+                ctx.font = "bold 16px Arial, sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText(
                   pharmacist.name,
@@ -470,7 +471,7 @@ export default function Home() {
           const note = notes[dateKey];
           if (note && note.trim()) {
             ctx.fillStyle = "#ef4444";
-            ctx.font = "10px Arial, sans-serif";
+            ctx.font = "14px Arial, sans-serif";
             ctx.textAlign = "left";
             const noteText =
               note.length > 10 ? note.substring(0, 10) + "..." : note;
@@ -479,51 +480,6 @@ export default function Home() {
         }
       }
     }
-
-    // 繪製圖例
-    const legendY =
-      padding + titleHeight + headerHeight + cellHeight * totalWeeks + 10;
-    ctx.fillStyle = "#6b7280";
-    ctx.font = "12px Arial, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("圖例：", padding, legendY);
-
-    // 藥師顏色圖例
-    const pharmacistColors = [
-      { bg: "#fef3c7", text: "#92400e" }, // 黃色系
-      { bg: "#dbeafe", text: "#1e40af" }, // 藍色系
-      { bg: "#f3e8ff", text: "#6b21a8" }, // 紫色系
-      { bg: "#dcfce7", text: "#166534" }, // 綠色系
-    ];
-
-    pharmacists.forEach((pharmacist, index) => {
-      const legendX = padding + 50 + index * 100;
-      const color = pharmacistColors[index % pharmacistColors.length];
-
-      // 繪製藥師圓圈圖例
-      ctx.fillStyle = color.bg;
-      ctx.beginPath();
-      ctx.arc(legendX + 10, legendY - 5, 8, 0, 2 * Math.PI);
-      ctx.fill();
-
-      ctx.strokeStyle = color.text;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(legendX + 10, legendY - 5, 8, 0, 2 * Math.PI);
-      ctx.stroke();
-
-      // 繪製藥師姓氏
-      ctx.fillStyle = color.text;
-      ctx.font = "bold 10px Arial, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(pharmacist.charAt(0), legendX + 10, legendY - 2);
-
-      // 繪製藥師全名
-      ctx.fillStyle = "#374151";
-      ctx.font = "12px Arial, sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(pharmacist, legendX + 25, legendY);
-    });
 
     // 轉換為圖片並下載
     canvas.toBlob((blob) => {
