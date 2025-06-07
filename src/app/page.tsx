@@ -385,8 +385,8 @@ export default function Home() {
           // 定義藥師顏色（使用不同的色調）
           const pharmacistColors = [
             { bg: "#dcfce7", text: "#166534" }, // 綠色系
-            { bg: "#fae52e", text: "#92400e" }, // 黃色系
-            { bg: "#fef3c7", text: "#f18213" }, // 橘色系
+            { bg: "#f7e259", text: "#995c02" }, // 黃色系
+            { bg: "#f9bfff", text: "#621e69" }, // 紫色系
             { bg: "#dbeafe", text: "#1e40af" }, // 藍色系
           ];
 
