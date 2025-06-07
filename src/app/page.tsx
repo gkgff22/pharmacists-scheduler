@@ -7,7 +7,6 @@ import {
   getDaysInMonth,
   getRequiredShifts,
   calculateStats,
-  getDayName,
 } from "@/utils/scheduleUtils";
 
 export default function Home() {
@@ -404,15 +403,18 @@ export default function Home() {
           const startY = y + 30;
 
           // 繪製三行（早、中、晚）
-          const periods = ["早", "中", "晚"];
-          const periodMapping = { 早: "早", 中: "午", 晚: "晚" }; // 映射到實際的班別名稱
+          const periods = ["早", "中", "晚"] as const;
+          const periodMapping = { 早: "早", 中: "午", 晚: "晚" } as const;
 
           periods.forEach((period, rowIndex) => {
             const rowY = startY + rowIndex * rowHeight;
             const rowX = x + 8;
 
             // 收集該時段的藥師
-            const periodPharmacists = [];
+            const periodPharmacists: {
+              name: string; // 只取姓氏
+              color: { bg: string; text: string };
+            }[] = [];
             pharmacists.forEach((pharmacist, pharmacistIndex) => {
               const shifts = daySchedule[pharmacist] || [];
               const actualPeriod = periodMapping[period];
@@ -573,13 +575,6 @@ export default function Home() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // 設置畫布大小和樣式
-    const cellWidth = 180;
-    const cellHeight = 140;
-    const headerHeight = 50;
-    const titleHeight = 60;
-    const padding = 20;
-
     // ... 複製 handleExportImage 中的繪圖代碼 ...
 
     // 轉換為 base64 圖片
@@ -659,7 +654,8 @@ export default function Home() {
             try {
               await navigator.clipboard.writeText(base64Image);
               alert("圖片連結已複製到剪貼簿！");
-            } catch (err) {
+            } catch (error) {
+              console.error("Failed to copy image:", error);
               alert("複製失敗，請手動複製圖片。");
             }
             break;
