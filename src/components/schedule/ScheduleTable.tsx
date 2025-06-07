@@ -59,7 +59,7 @@ export const ScheduleTable = ({
             <div className="flex items-center gap-3">
               <Calendar className="text-blue-600" size={32} />
               <h1 className="text-3xl font-bold text-gray-800">
-                藥師排班管理系統
+                上允藥師排班管理系統
               </h1>
             </div>
             <div className="flex items-center gap-4">
