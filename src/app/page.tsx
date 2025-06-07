@@ -385,8 +385,8 @@ export default function Home() {
           // 定義藥師顏色（使用不同的色調）
           const pharmacistColors = [
             { bg: "#dcfce7", text: "#166534" }, // 綠色系
-            { bg: "#fef3c7", text: "#92400e" }, // 黃色系
-            { bg: "#f3e8ff", text: "#6b21a8" }, // 紫色系
+            { bg: "#fae52e", text: "#92400e" }, // 黃色系
+            { bg: "#fef3c7", text: "#f18213" }, // 橘色系
             { bg: "#dbeafe", text: "#1e40af" }, // 藍色系
           ];
 
@@ -448,7 +448,7 @@ export default function Home() {
 
                 // 繪製藥師姓氏
                 ctx.fillStyle = pharmacist.color.text;
-                ctx.font = "bold 16px Arial, sans-serif";
+                ctx.font = "bold 18px Arial, sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText(
                   pharmacist.name,
