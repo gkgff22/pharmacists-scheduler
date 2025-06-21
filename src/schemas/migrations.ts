@@ -8,7 +8,7 @@ export interface VersionInfo {
 }
 
 // 遷移函數類型
-export type MigrationFunction = (data: any) => any;
+export type MigrationFunction = (data: Record<string, unknown>) => Record<string, unknown>;
 
 // 解析版本號
 export const parseVersion = (version: string): VersionInfo => {
@@ -59,7 +59,7 @@ export const SaveDataV1_2_0 = z.object({
 // 遷移函數映射表
 export const migrations: Record<string, MigrationFunction> = {
   // 從 1.0.0 升級到 1.1.0
-  '1.0.0->1.1.0': (data: any) => {
+  '1.0.0->1.1.0': (data: Record<string, unknown>) => {
     // V1.0.0 沒有 '加' 班別，確保升級後保持原有資料完整性
     return {
       ...data,
@@ -69,7 +69,7 @@ export const migrations: Record<string, MigrationFunction> = {
   },
 
   // 從 1.1.0 升級到 1.2.0  
-  '1.1.0->1.2.0': (data: any) => {
+  '1.1.0->1.2.0': (data: Record<string, unknown>) => {
     return {
       ...data,
       version: '1.2.0',
@@ -82,7 +82,7 @@ export const migrations: Record<string, MigrationFunction> = {
   },
 
   // 從 1.0.0 直接升級到 1.2.0（跨版本遷移）
-  '1.0.0->1.2.0': (data: any) => {
+  '1.0.0->1.2.0': (data: Record<string, unknown>) => {
     // 先升級到 1.1.0，再升級到 1.2.0
     const intermediate = migrations['1.0.0->1.1.0'](data);
     return migrations['1.1.0->1.2.0'](intermediate);
@@ -90,9 +90,9 @@ export const migrations: Record<string, MigrationFunction> = {
 };
 
 // 自動遷移函數
-export const migrateToLatest = (data: any, targetVersion: string = '1.2.0'): {
+export const migrateToLatest = (data: Record<string, unknown>, targetVersion: string = '1.2.0'): {
   success: boolean;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: string;
 } => {
   try {
@@ -141,12 +141,12 @@ export const migrateToLatest = (data: any, targetVersion: string = '1.2.0'): {
 };
 
 // 驗證舊版本資料
-export const validateLegacyData = (data: any): {
+export const validateLegacyData = (data: Record<string, unknown>): {
   version: string;
   isValid: boolean;
   errors: string[];
 } => {
-  const version = data.version || '1.0.0';
+  const version = (typeof data.version === 'string' ? data.version : '1.0.0');
   
   try {
     switch (version) {

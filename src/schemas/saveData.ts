@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { migrateToLatest, validateLegacyData, parseVersion, compareVersions } from './migrations';
+import { migrateToLatest, validateLegacyData } from './migrations';
 
 // 班別驗證
 export const ShiftSchema = z.enum(['早', '午', '晚', '加']);
@@ -59,15 +59,17 @@ export interface ValidationResult {
 export function validateSaveData(data: unknown): ValidationResult {
   // 首先檢查是否為有效的舊版本格式
   if (typeof data === 'object' && data !== null && 'version' in data) {
-    const legacyValidation = validateLegacyData(data);
+    const legacyValidation = validateLegacyData(data as Record<string, unknown>);
     
     if (legacyValidation.isValid) {
       // 如果是舊版本且有效，嘗試遷移到最新版本
-      const currentVersion = (data as any).version || '1.0.0';
+      const currentVersion = (typeof (data as Record<string, unknown>).version === 'string' 
+        ? (data as Record<string, unknown>).version 
+        : '1.0.0');
       const targetVersion = '1.0.0'; // 當前最新版本
       
       if (currentVersion !== targetVersion) {
-        const migrationResult = migrateToLatest(data, targetVersion);
+        const migrationResult = migrateToLatest(data as Record<string, unknown>, targetVersion);
         
         if (migrationResult.success && migrationResult.data) {
           // 遷移成功，驗證遷移後的資料
