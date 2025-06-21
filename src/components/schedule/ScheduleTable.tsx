@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Calendar, Users, AlertTriangle } from "lucide-react";
 import { PharmacistNameEditor } from "../ui/PharmacistNameEditor";
 import { ShiftEditor } from "../ui/ShiftEditor";
+import { SaveLoadButtons, AutoSaveIndicator } from "../ui/SaveLoadButtons";
 import {
   getDaysInMonth,
   getDayName,
@@ -17,6 +18,8 @@ interface ScheduleTableProps {
   notes: Notes;
   violations: string[];
   showStats: boolean;
+  lastAutoSave?: Date;
+  isAutoSaving?: boolean;
   onMonthChange: (date: Date) => void;
   onPharmacistNameEdit: (oldName: string, newName: string) => void;
   onShiftEdit: (date: Date, pharmacist: string, shifts: Shift[]) => void;
@@ -25,6 +28,8 @@ interface ScheduleTableProps {
   onExportImage: () => void;
   onShareImage: () => void;
   onToggleStats: () => void;
+  onSave: () => Promise<void>;
+  onLoad: (file: File) => Promise<void>;
 }
 
 export const ScheduleTable = ({
@@ -34,6 +39,8 @@ export const ScheduleTable = ({
   notes,
   violations,
   showStats,
+  lastAutoSave,
+  isAutoSaving,
   onMonthChange,
   onPharmacistNameEdit,
   onShiftEdit,
@@ -42,6 +49,8 @@ export const ScheduleTable = ({
   onExportImage,
   onShareImage,
   onToggleStats,
+  onSave,
+  onLoad,
 }: ScheduleTableProps) => {
   const [editingPharmacist, setEditingPharmacist] = useState<string | null>(
     null
@@ -70,6 +79,13 @@ export const ScheduleTable = ({
                 <Users size={20} />
                 統計面板
               </button>
+              
+              {/* 存檔讀檔按鈕 */}
+              <SaveLoadButtons
+                onSave={onSave}
+                onLoad={onLoad}
+              />
+              
               <div className="flex gap-2">
                 <button
                   onClick={onExportCalendar}
@@ -97,6 +113,14 @@ export const ScheduleTable = ({
                 </button>
               </div>
             </div>
+          </div>
+          
+          {/* 自動存檔狀態指示器 */}
+          <div className="flex justify-end mt-4">
+            <AutoSaveIndicator 
+              lastSaved={lastAutoSave}
+              isSaving={isAutoSaving}
+            />
           </div>
         </div>
 

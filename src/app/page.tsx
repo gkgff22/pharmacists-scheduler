@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ScheduleTable } from "@/components/schedule/ScheduleTable";
 import { Schedule, Notes, Shift, PharmacistStats } from "@/types/schedule";
+import toast from "react-hot-toast";
 import {
   getDaysInMonth,
   getRequiredShifts,
   calculateStats,
 } from "@/utils/scheduleUtils";
+import {
+  createSaveData,
+  saveToFile,
+  loadFromFile,
+  autoSave,
+  loadAutoSave,
+  getAutoSaveInfo,
+  saveDataToAppState,
+} from "@/utils/saveLoadUtils";
 
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -16,9 +26,11 @@ export default function Home() {
   const [violations, setViolations] = useState<string[]>([]);
   const [notes, setNotes] = useState<Notes>({});
   const [showStats, setShowStats] = useState(true);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
 
   // 檢查排班違規
-  const checkViolations = () => {
+  const checkViolations = useCallback(() => {
     const newViolations: string[] = [];
     const days = getDaysInMonth(currentMonth);
 
@@ -114,11 +126,109 @@ export default function Home() {
     });
 
     setViolations(newViolations);
-  };
+  }, [currentMonth, schedule, pharmacists]);
 
   useEffect(() => {
     checkViolations();
-  }, [schedule, currentMonth]);
+  }, [checkViolations]);
+
+  // 自動存檔功能
+  const performAutoSave = useCallback(async () => {
+    setIsAutoSaving(true);
+    try {
+      const success = autoSave(currentMonth, pharmacists, schedule, notes);
+      if (success) {
+        setLastAutoSave(new Date());
+      }
+    } catch (error) {
+      console.error('自動存檔失敗:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [currentMonth, pharmacists, schedule, notes]);
+
+  // 當排班資料變更時自動存檔（延遲500ms避免頻繁存檔）
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performAutoSave();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [performAutoSave]);
+
+  // 頁面載入時檢查是否有自動存檔
+  useEffect(() => {
+    const autoSaveInfo = getAutoSaveInfo();
+    if (autoSaveInfo.hasAutoSave && autoSaveInfo.savedAt) {
+      const shouldRestore = window.confirm(
+        `發現自動存檔 (${new Date(autoSaveInfo.savedAt).toLocaleString('zh-TW')})\n是否要恢復？`
+      );
+      
+      if (shouldRestore) {
+        const result = loadAutoSave();
+        if (result.success && result.data) {
+          const appState = saveDataToAppState(result.data);
+          setCurrentMonth(appState.currentMonth);
+          setPharmacists(appState.pharmacists);
+          setSchedule(appState.schedule);
+          setNotes(appState.notes);
+          setLastAutoSave(new Date(result.data.savedAt));
+          
+          if (result.warnings.length > 0) {
+            toast('注意：' + result.warnings.join('\n'), {
+              icon: '⚠️',
+              duration: 6000,
+            });
+          }
+        } else {
+          toast.error('自動存檔載入失敗：' + result.errors.join('\n'));
+        }
+      }
+    }
+  }, []);
+
+  // 手動存檔
+  const handleSave = async () => {
+    const saveData = createSaveData(currentMonth, pharmacists, schedule, notes);
+    const result = await saveToFile(saveData);
+    
+    if (!result.success) {
+      toast.error('存檔失敗：' + result.error);
+    }
+  };
+
+  // 手動讀檔
+  const handleLoad = async (file: File) => {
+    const result = await loadFromFile(file);
+    
+    if (!result.success) {
+      toast.error('讀檔失敗：\n' + result.errors.join('\n'));
+      return;
+    }
+    
+    if (result.data) {
+      // 確認是否要覆蓋當前資料
+      const shouldOverwrite = window.confirm(
+        '載入存檔將會覆蓋當前的排班資料，確定要繼續嗎？'
+      );
+      
+      if (shouldOverwrite) {
+        const appState = saveDataToAppState(result.data);
+        setCurrentMonth(appState.currentMonth);
+        setPharmacists(appState.pharmacists);
+        setSchedule(appState.schedule);
+        setNotes(appState.notes);
+        setLastAutoSave(new Date(result.data.savedAt));
+        
+        if (result.warnings.length > 0) {
+          toast('注意：\n' + result.warnings.join('\n'), {
+            icon: '⚠️',
+            duration: 6000,
+          });
+        }
+      }
+    }
+  };
 
   // 處理班別編輯
   const handleShiftEdit = (
@@ -236,12 +346,12 @@ export default function Home() {
       URL.revokeObjectURL(url);
 
       // 顯示成功訊息
-      alert(
+      toast.success(
         "日曆文件已成功下載！可以匯入到 Google Calendar 或 Apple 日曆中使用。"
       );
     } catch (error) {
       console.error("導出日曆時發生錯誤:", error);
-      alert("導出日曆時發生錯誤，請稍後再試。");
+      toast.error("導出日曆時發生錯誤，請稍後再試。");
     }
   };
 
@@ -484,7 +594,7 @@ export default function Home() {
     // 轉換為圖片並下載
     canvas.toBlob((blob) => {
       if (!blob) {
-        alert("無法生成圖片");
+        toast.error("無法生成圖片");
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -500,7 +610,7 @@ export default function Home() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      alert("月曆已成功匯出為圖片！");
+      toast.success("月曆已成功匯出為圖片！");
     });
   };
 
@@ -588,10 +698,10 @@ export default function Home() {
           case "copy":
             try {
               await navigator.clipboard.writeText(base64Image);
-              alert("圖片連結已複製到剪貼簿！");
+              toast.success("圖片連結已複製到剪貼簿！");
             } catch (error) {
               console.error("Failed to copy image:", error);
-              alert("複製失敗，請手動複製圖片。");
+              toast.error("複製失敗，請手動複製圖片。");
             }
             break;
         }
@@ -610,6 +720,8 @@ export default function Home() {
       notes={notes}
       violations={violations}
       showStats={showStats}
+      lastAutoSave={lastAutoSave || undefined}
+      isAutoSaving={isAutoSaving}
       onMonthChange={setCurrentMonth}
       onPharmacistNameEdit={handlePharmacistNameEdit}
       onShiftEdit={handleShiftEdit}
@@ -618,6 +730,8 @@ export default function Home() {
       onExportImage={handleExportImage}
       onShareImage={handleShareImage}
       onToggleStats={() => setShowStats(!showStats)}
+      onSave={handleSave}
+      onLoad={handleLoad}
     />
   );
 }
