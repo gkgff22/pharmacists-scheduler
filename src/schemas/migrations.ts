@@ -96,7 +96,7 @@ export const migrateToLatest = (data: Record<string, unknown>, targetVersion: st
   error?: string;
 } => {
   try {
-    const currentVersion = data.version || '1.0.0';
+    const currentVersion = typeof data.version === 'string' ? data.version : '1.0.0';
     
     if (currentVersion === targetVersion) {
       return { success: true, data };

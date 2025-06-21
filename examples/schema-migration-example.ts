@@ -116,10 +116,10 @@ export function manualMigrationExample() {
   
   const migrationResult = migrateToLatest(oldData, '1.2.0');
   
-  if (migrationResult.success) {
+  if (migrationResult.success && migrationResult.data) {
     console.log('✅ 遷移成功!');
-    console.log('新版本:', migrationResult.data.version);
-    console.log('新欄位:', migrationResult.data.metadata);
+    console.log('新版本:', (migrationResult.data as { version: string }).version);
+    console.log('新欄位:', (migrationResult.data as { metadata?: unknown }).metadata);
   } else {
     console.log('❌ 遷移失敗:', migrationResult.error);
   }
